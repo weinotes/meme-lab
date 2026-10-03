@@ -1,0 +1,105 @@
+# meme-lab screening configuration
+#
+# 所有阈值都是初始经验值，跑一个月后用 journal/trade-log.csv 的真实数据回归调整。
+# 调整时一次只改一条，并记录日期和理由（见 docs/07）。
+
+# ---------------------------------------------------------------------------
+# 采集：需要监听的 launchpad / AMM 程序
+#
+# ⚠️ 待核验：以下程序 ID 必须在启用前对照官方文档或链上浏览器逐一核对。
+#    程序升级或迁移后 ID 可能变化，错误的 ID 会导致漏采或空转。
+# ---------------------------------------------------------------------------
+programs:
+  - name: pumpfun
+    id: 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P
+  - name: raydium-cpmm
+    id: CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C
+  - name: meteora-dlmm
+    id: LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo
+
+# ---------------------------------------------------------------------------
+# 采集/查询行为
+# ---------------------------------------------------------------------------
+collector:
+  # 订阅确认级别：processed 延迟最低但可能回滚，confirmed 更稳。
+  commitment: confirmed
+  # 回查交易用的级别：只允许 confirmed | finalized
+  # （processed 的分叉可能被跳过，导致取不到交易内容）
+  fetchCommitment: confirmed
+  # 回查交易支持的最高交易版本。Solana 已出现 v1 交易，设为 0 会直接解析失败。
+  maxSupportedTransactionVersion: 1
+  # 日志预过滤：只有当日志中出现以下任一子串时才回查交易。
+  # 订阅程序日志会收到该程序的**每一笔**交易（绝大多数是买卖，不是发币），
+  # 不过滤会把 RPC 打爆。留空 = 不过滤（仅在专用 RPC 上推荐）。
+  # 用 scripts/watch-logs.ts 可以发现真实的发币日志特征串，
+  # 用 scripts/probe-creation.ts 可以实测某个特征串的命中精度。
+  # 实测（2026-10-03，pump.fun）："Instruction: Create" 命中精度约 50%，
+  # 即约一半匹配交易确实包含新建 mint，另外一半是无效回查（代价很低）。
+  logIncludes:
+    - "Instruction: Create"
+  # 单笔交易解析失败的重试次数
+  txFetchRetries: 2
+  # 内存队列上限，超过后丢弃最旧事件（防止新币爆发时压垮进程）
+  queueLimit: 2000
+  # 同一 mint 的去重窗口（秒）
+  dedupeWindowSec: 3600
+
+enricher:
+  # getProgramAccounts 统计持币地址数：准确但开销大，公共 RPC 常被禁用。
+  # 若 RPC 不支持，会自动降级为 null（并进入人工复核，不会被误判为 pass）。
+  countHolders: true
+  # 单次链上调用超时（毫秒）
+  timeoutMs: 12000
+
+# ---------------------------------------------------------------------------
+# 筛选：硬性否决规则（对应 docs/03 第 2、6 节）
+# unknown 表示链上/数据源拿不到该字段，按策略处理，绝不默认放行。
+# ---------------------------------------------------------------------------
+screening:
+  hardRules:
+    requireMintAuthorityRevoked: { enabled: true, unknown: reject }
+    requireFreezeAuthorityRevoked: { enabled: true, unknown: reject }
+    minLiquidityUsd: { enabled: true, value: 5000, unknown: reject }
+    maxTop10Pct: { enabled: true, value: 60, unknown: manual }
+    minHolderCount: { enabled: true, value: 50, unknown: manual }
+    maxBuyTaxPct: { enabled: true, value: 10, unknown: manual }
+    maxSellTaxPct: { enabled: true, value: 10, unknown: manual }
+    requireLpLocked: { enabled: true, unknown: manual }
+
+  # ---------------------------------------------------------------------------
+  # 新币宽限期（秒）：刚发现的代币还没有流动性/持币/分布数据，这些"质量/活跃度"
+  # 维度此刻不具判别力。在宽限期内，min_liquidity / max_top10 / min_holders
+  # 未达标会降级为 manual（记录 + 人工复核），而不是直接 reject；安全类规则
+  # （mint/freeze 权限、税率、LP）不受影响，仍会硬性否决。
+  # 设为 0 关闭该行为（恢复"新币全部 reject"的旧逻辑）。
+  # 初始经验值，跑一个月后用 journal 真实数据回归调整（见 docs/07 第 5 节）。
+  freshGraceSec: 900
+
+  # 评分卡：每个维度 0–5 分，加权后归一化到 0–100。
+  # weight 为 0 的维度不计入（socialHeat / narrative 需要人工判断）。
+  score:
+    weights:
+      contractSafety: 30
+      liquidityQuality: 25
+      holderDistribution: 20
+      tradingActivity: 10
+      socialHeat: 0
+      narrative: 0
+    # 归一化后的分数线
+    passThreshold: 65
+    manualThreshold: 40
+    # 子维度线性映射的端点
+    liquidity: { worstUsd: 5000, bestUsd: 100000 }
+    top10: { bestPct: 25, worstPct: 70 }
+    holders: { worstCount: 50, bestCount: 500 }
+
+# ---------------------------------------------------------------------------
+# 落库
+# ---------------------------------------------------------------------------
+store:
+  # 由环境变量 MEMELAB_DB_PATH 覆盖
+  path: ./data/meme-lab.sqlite
+
+pipeline:
+  # pass 立即推送；manual 默认也推送（便于人工复核），设为 false 则只入表
+  notifyManual: true

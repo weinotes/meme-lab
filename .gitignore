@@ -1,0 +1,28 @@
+# secrets
+.env
+.env.*
+# keep the template -- it holds placeholders only, no real credentials
+!.env.example
+*.key
+*.pem
+secrets/
+
+# local data (RPC dumps, price series, db files)
+data/
+*.sqlite
+*.db
+*.parquet
+
+# python / node
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+
+# os
+.DS_Store
+
+# private: never publish
+# 策略打法手册与真实交易记录，仅在本地保留，不进入公共仓库。
+docs/05-打法手册.md
+journal/trade-log.csv

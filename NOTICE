@@ -1,0 +1,35 @@
+meme-lab
+Copyright 2026 Davey <wgwcko@gmail.com>
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Read-only Solana meme-token screening and research pipeline.
+Provided for personal research and educational purposes only, with no warranty
+of any kind and no investment advice. See README and docs/08 for disclaimers.
+
+--------------------------------------------------------------------------------
+Third-party components
+--------------------------------------------------------------------------------
+
+These packages are not redistributed in this repository; they are resolved from
+the npm registry at install time. Attribution is listed here in accordance with
+the Apache License 2.0, section 4(d).
+
+MIT
+  @solana/web3.js, https-proxy-agent, socks-proxy-agent, tsx, @types/node
+
+ISC
+  yaml
+
+Apache-2.0
+  typescript, borsh, @swc/helpers
+
+LGPL-3.0-only -- reviewed and accepted (ENGINEERING-STANDARDS section 8.3)
+  rpc-websockets 9.3.10, https://github.com/elpheria/rpc-websockets
+  Transitive dependency of @solana/web3.js, used only for WebSocket
+  subscriptions. It is loaded dynamically at runtime through Node.js module
+  resolution and can be replaced via npm "overrides". This repository does not
+  modify, statically link, or redistribute it. Reviewed 2026-10-03.
+
+The remaining transitive dependencies are licensed under MIT, BSD-2-Clause,
+BSD-3-Clause, ISC, or 0BSD.
