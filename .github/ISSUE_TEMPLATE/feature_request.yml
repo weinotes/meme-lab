@@ -1,0 +1,46 @@
+name: 需求 / 功能建议
+description: 提出一个新功能或改进
+title: "[REQ] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        本项目是**只读**研究工具：不签名、不下单。任何涉及自动交易的提议，
+        请先阅读 `README` 的「非目标」与 `docs/09` 的阶段门（Stage Gate）。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 描述问题本身，而不是你预设的方案
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 考虑过的替代方案，以及为什么否决
+    validations:
+      required: false
+
+  - type: dropdown
+    id: stage
+    attributes:
+      label: 对应 `docs/09` 的哪个阶段门
+      options:
+        - G0 准备
+        - G1 只读监控
+        - G2 纸面 / 小额验证
+        - G3 挑战执行
+        - G4 复盘
+        - 不属于任何阶段
+    validations:
+      required: true

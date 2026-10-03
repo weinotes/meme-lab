@@ -1,0 +1,29 @@
+# CODEOWNERS
+#
+# Single-maintainer project: GitHub cannot request review from the PR author,
+# so this file does not gate merges. Its job here is to WARN on high-risk paths
+# -- when a PR touches one of these, the reviewer request makes the risk visible
+# instead of silently merging.
+
+# Default owner for everything.
+*                       @weinotes
+
+# High-risk: on-chain rules, scoring, and anything that decides what gets bought
+# or trusted. A mistake here silently mis-scores every candidate.
+/src/screener.ts        @weinotes
+/src/enricher.ts        @weinotes
+/src/collector.ts       @weinotes
+
+# High-risk: credentials handling and the screening thresholds.
+/config/default.yaml    @weinotes
+/src/config.ts          @weinotes
+/src/proxy.ts           @weinotes
+/src/indexer.ts         @weinotes
+
+# Supply chain: workflow files hold repo write access and all secrets.
+/.github/workflows/     @weinotes
+
+# Legal / attribution surface.
+/LICENSE                @weinotes
+/NOTICE                 @weinotes
+/SECURITY.md            @weinotes

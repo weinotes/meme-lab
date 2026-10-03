@@ -1,0 +1,78 @@
+name: 缺陷报告
+description: 报告一个可复现的缺陷
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **安全漏洞请勿在此提交** —— 请按 `SECURITY.md` 通过邮件私下上报。
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / commit
+      description: 受影响的版本号或 commit SHA
+      placeholder: "c5901d7"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 按顺序写出可机械复现的步骤
+      placeholder: |
+        1. 配置 ...
+        2. 执行 `npm start`
+        3. 观察到 ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 请粘贴真实输出或日志，不要只写结论
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重度（S1a/S1b/S2/S3/S4，定义见 docs/08）
+      options:
+        - S1a 致命·可自动恢复
+        - S1b 致命·需人工介入
+        - S2 严重
+        - S3 一般
+        - S4 轻微
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级（与严重度独立，两者都要填）
+      options:
+        - P0 立即处理
+        - P1 本迭代内
+        - P2 排期处理
+        - P3 有空再说
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      description: Node 版本、操作系统、RPC 类型（公共 / 专用）、是否走代理
+    validations:
+      required: false
